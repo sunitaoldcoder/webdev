@@ -1,0 +1,19 @@
+import {useState} from 'react';
+import {post,setToken} from './api';
+import {Field} from './components';
+import {districts,districtHi,crops,type Language} from './i18n';
+export default function Auth({lang,onDone,onClose}:{lang:Language;onDone:()=>void;onClose:()=>void}){
+ const [register,setRegister]=useState(false);const [busy,setBusy]=useState(false);const [error,setError]=useState('');const hi=lang==='hi';
+ const [form,setForm]=useState({name:'',mobile:'',password:'',district:'Lucknow',village:'',language:lang,crops:['Wheat'],size_acres:'2',irrigation:'canal'});
+ const change=(key:string,value:unknown)=>setForm({...form,[key]:value});
+ async function submit(e:React.FormEvent){e.preventDefault();setBusy(true);setError('');try{const result=await post(register?'auth/register':'auth/login',form);setToken(result.token);onDone();}catch(e){setError((e as Error).message);}finally{setBusy(false)}}
+ return <div className="modal-backdrop"><section className="modal" role="dialog" aria-modal="true" aria-labelledby="auth-title"><button className="modal-close" onClick={onClose} aria-label="Close">×</button><span className="eyebrow">SHIVAM AGRI AI</span><h2 id="auth-title">{register?(hi?'खेती का सफ़र शुरू करें':'Create your farmer profile'):(hi?'फिर से स्वागत है':'Welcome back')}</h2><p>{hi?'आपकी जानकारी केवल आपकी खेती की सलाह के लिए।':'Your information helps personalize farm guidance.'}</p><form onSubmit={submit}>
+ {register&&<Field label={hi?'नाम':'Name'}><input required maxLength={100} value={form.name} onChange={e=>change('name',e.target.value)}/></Field>}
+ <Field label={hi?'मोबाइल नंबर':'Mobile number'}><input required type="tel" inputMode="numeric" pattern="[6-9][0-9]{9}" maxLength={10} value={form.mobile} onChange={e=>change('mobile',e.target.value)} placeholder="10 अंकों का मोबाइल"/></Field>
+ <Field label={hi?'पासवर्ड':'Password'}><input required type="password" minLength={8} autoComplete={register?'new-password':'current-password'} value={form.password} onChange={e=>change('password',e.target.value)}/></Field>
+ {register&&<><div className="form-grid"><Field label={hi?'ज़िला':'District'}><select value={form.district} onChange={e=>change('district',e.target.value)}>{districts.map(d=><option key={d} value={d}>{hi?districtHi[d]:d}</option>)}</select></Field><Field label={hi?'गाँव':'Village'}><input required maxLength={100} value={form.village} onChange={e=>change('village',e.target.value)}/></Field></div>
+ <Field label={hi?'मुख्य फसलें':'Main crops'}><div className="crop-checks">{crops.map(([en,h])=><label key={en}><input type="checkbox" checked={form.crops.includes(en)} onChange={()=>change('crops',form.crops.includes(en)?form.crops.filter(c=>c!==en):[...form.crops,en])}/>{hi?h:en}</label>)}</div></Field>
+ <div className="form-grid"><Field label={hi?'खेत का आकार (एकड़)':'Farm size (acres)'}><input type="number" required min="0.01" step="0.01" value={form.size_acres} onChange={e=>change('size_acres',e.target.value)}/></Field><Field label={hi?'सिंचाई का प्रकार':'Irrigation'}><select value={form.irrigation} onChange={e=>change('irrigation',e.target.value)}>{[['rainfed','वर्षा'],['canal','नहर'],['borewell','नलकूप'],['drip','ड्रिप'],['other','अन्य']].map(([v,l])=><option key={v} value={v}>{hi?l:v}</option>)}</select></Field></div>
+ <Field label={hi?'पसंदीदा भाषा':'Preferred language'}><select value={form.language} onChange={e=>change('language',e.target.value)}><option value="hi">हिंदी</option><option value="en">English</option></select></Field></>}
+ {error&&<p role="alert" className="error">{error}</p>}<button className="primary full" disabled={busy}>{busy?'कृपया प्रतीक्षा करें…':register?(hi?'पंजीकरण करें':'Register'):(hi?'लॉग इन करें':'Log in')}</button></form><button className="text-button" onClick={()=>{setRegister(!register);setError('')}}>{register?(hi?'पहले से खाता है? लॉग इन':'Already registered? Log in'):(hi?'नए किसान? पंजीकरण करें':'New farmer? Register')}</button></section></div>
+}

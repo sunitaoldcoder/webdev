@@ -1,0 +1,6 @@
+export type Language='hi'|'en';
+export const labels={hi:{home:'मुख्य पेज',ask:'AI से पूछें',doctor:'फसल डॉक्टर',weather:'मौसम',market:'मंडी भाव',farm:'मेरा खेत',expert:'कृषि विशेषज्ञ',admin:'प्रशासन',headline:'खेती की जानकारी, अब AI के साथ',subtitle:'सही जानकारी। बेहतर फैसले। खुशहाल खेती।',greeting:'नमस्ते, किसान साथी',voice:'बोलकर पूछें',login:'लॉग इन',register:'पंजीकरण',logout:'लॉग आउट',sample:'नमूना डेटा',send:'पूछें',loading:'कृपया प्रतीक्षा करें…'},en:{home:'Home',ask:'Ask AI',doctor:'Crop Doctor',weather:'Weather',market:'Mandi Prices',farm:'My Farm',expert:'Agriculture Expert',admin:'Admin',headline:'AI Farming Assistant',subtitle:'Better information. Better decisions. Better farming.',greeting:'Namaste, farmer',voice:'Ask by voice',login:'Log in',register:'Register',logout:'Log out',sample:'Sample data',send:'Ask',loading:'Please wait…'}};
+export const districts=['Lucknow','Rae Bareli','Gorakhpur','Varanasi'];
+export const districtHi:Record<string,string>={'Lucknow':'लखनऊ','Rae Bareli':'रायबरेली','Gorakhpur':'गोरखपुर','Varanasi':'वाराणसी'};
+export const crops=[['Wheat','गेहूँ'],['Rice/Paddy','धान'],['Mustard','सरसों'],['Potato','आलू'],['Tomato','टमाटर'],['Pulses','दालें']];
+export const disclaimer='AI आधारित सलाह। फसल के महत्वपूर्ण उपचार से पहले योग्य कृषि विशेषज्ञ / KVK से पुष्टि करें।';
