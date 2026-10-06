@@ -1,5 +1,5 @@
 // Cache the public application shell only. Farmer records and /api are never cached.
-const CACHE='agri-shell-v2';
+const CACHE='agri-shell-v3';
 self.addEventListener('install',e=>e.waitUntil((async()=>{
  const cache=await caches.open(CACHE);
  const response=await fetch('/');

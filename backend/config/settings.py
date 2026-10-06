@@ -9,7 +9,7 @@ if not DEBUG and SECRET_KEY == 'local-demo-only-change-before-deployment':
     raise RuntimeError('Set DJANGO_SECRET_KEY for deployment')
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 INSTALLED_APPS = ['django.contrib.admin','django.contrib.auth','django.contrib.contenttypes','django.contrib.sessions','django.contrib.messages','django.contrib.staticfiles','rest_framework','corsheaders','farmers','farms','advisory','crop_diagnosis','weather','market_prices','experts','feedback','subscriptions','whatsapp','analytics','accounts']
-MIDDLEWARE = ['django.middleware.security.SecurityMiddleware','corsheaders.middleware.CorsMiddleware','django.contrib.sessions.middleware.SessionMiddleware','django.middleware.common.CommonMiddleware','django.middleware.csrf.CsrfViewMiddleware','django.contrib.auth.middleware.AuthenticationMiddleware','django.contrib.messages.middleware.MessageMiddleware','django.middleware.clickjacking.XFrameOptionsMiddleware']
+MIDDLEWARE = ['django.middleware.security.SecurityMiddleware','whitenoise.middleware.WhiteNoiseMiddleware','corsheaders.middleware.CorsMiddleware','django.contrib.sessions.middleware.SessionMiddleware','django.middleware.common.CommonMiddleware','django.middleware.csrf.CsrfViewMiddleware','django.contrib.auth.middleware.AuthenticationMiddleware','django.contrib.messages.middleware.MessageMiddleware','django.middleware.clickjacking.XFrameOptionsMiddleware']
 ROOT_URLCONF = 'config.urls'
 TEMPLATES = [{'BACKEND':'django.template.backends.django.DjangoTemplates','DIRS':[],'APP_DIRS':True,'OPTIONS':{'context_processors':['django.template.context_processors.request','django.contrib.auth.context_processors.auth','django.contrib.messages.context_processors.messages']}}]
 DATABASES = {'default': {'ENGINE':'django.db.backends.sqlite3','NAME':BASE_DIR/'db.sqlite3'}}
@@ -32,3 +32,23 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 
 MIDDLEWARE += ['config.middleware.APILogMiddleware']
 LOGGING = {'version':1,'disable_existing_loggers':False,'handlers':{'console':{'class':'logging.StreamHandler'}},'loggers':{'api':{'handlers':['console'],'level':'INFO','propagate':False}}}
+
+# Single-origin HTTPS PWA deployment; source development still uses Vite.
+PWA_ROOT = BASE_DIR.parent/'frontend'/'dist'
+WHITENOISE_ROOT = PWA_ROOT
+WHITENOISE_MAX_AGE = 0  # shell/worker updates must not be hidden by browser caches
+STATIC_ROOT = BASE_DIR/'staticfiles'
+MEDIA_ROOT = Path(os.environ.get('MEDIA_ROOT', str(BASE_DIR/'media')))
+CSRF_TRUSTED_ORIGINS = [x for x in os.environ.get('CSRF_TRUSTED_ORIGINS','').split(',') if x]
+SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT','0' if DEBUG else '1')=='1'
+if os.environ.get('TRUST_PROXY_HEADERS')=='1':
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO','https')
+if os.environ.get('RENDER_EXTERNAL_HOSTNAME'):
+    ALLOWED_HOSTS.append(os.environ['RENDER_EXTERNAL_HOSTNAME'])
+    CSRF_TRUSTED_ORIGINS.append('https://'+os.environ['RENDER_EXTERNAL_HOSTNAME'])
+if os.environ.get('DATABASE_URL'):
+    from urllib.parse import urlsplit, unquote, parse_qsl
+    url=urlsplit(os.environ['DATABASE_URL'])
+    if url.scheme not in ('postgres','postgresql'):
+        raise RuntimeError('DATABASE_URL must be PostgreSQL')
+    DATABASES={'default':{'ENGINE':'django.db.backends.postgresql','NAME':unquote(url.path.lstrip('/')),'USER':unquote(url.username or ''),'PASSWORD':unquote(url.password or ''),'HOST':url.hostname,'PORT':url.port or 5432,'OPTIONS':dict(parse_qsl(url.query))}}

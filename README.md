@@ -239,3 +239,15 @@ Run a representative API smoke check after starting the app:
 ```bash
 .venv/bin/python scripts/smoke.py
 ```
+
+## Installable phone app (PWA)
+
+See [PWA installation and hosting steps](docs/PWA-INSTALL.md). The root Dockerfile
+packages the frontend and API into one service, with no automatic demo accounts.
+Django serves the built PWA using WhiteNoise; HTTPS is enforced with DEBUG=0.
+A Hindi install banner appears when the browser offers installation. Android users
+can also install through Chrome's menu; iPhone users use Safari's Add to Home Screen.
+Publishing requires your hosting account, managed PostgreSQL and persistent private
+image storage. This repository has not been deployed to a public website.
+
+Hosting checks: `python backend/manage.py test advisory providers config`.
