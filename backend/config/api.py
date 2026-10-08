@@ -125,7 +125,11 @@ def respond(request,pk):
 def diagnosis_image(request,pk):
     d=get_object_or_404(CropDiagnosis,pk=pk)
     if not request.user.is_staff and d.farmer.user_id!=request.user.id: raise PermissionDenied()
-    return FileResponse(d.image.open('rb'),content_type='application/octet-stream')
+    try:
+        image_file = d.image.open('rb')
+    except (FileNotFoundError, OSError, ValueError):
+        return Response({'error':'The uploaded crop photo is no longer available. Please upload a new photo.'},status=404)
+    return FileResponse(image_file,content_type='application/octet-stream')
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def analytics(request):
