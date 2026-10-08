@@ -8,11 +8,11 @@ import {Weather,Market} from './DataPages';
 import Farm from './Farm';
 import Expert from './Expert';
 import Admin from './Admin';
-import {api,hasToken,setToken} from './api';
+import {api,ApiError,hasToken,setToken} from './api';
 import {labels,type Language} from './i18n';
 export default function App(){
  const [lang,setLang]=useState<Language>((localStorage.getItem('agri-language') as Language)==='en'?'en':'hi');const [page,setPage]=useState<Page>('home');const [district,setDistrict]=useState('Lucknow');const [profile,setProfile]=useState<any>(null);const [auth,setAuth]=useState(false);const [loggedIn,setLoggedIn]=useState(hasToken());const [staff,setStaff]=useState(false);const [initial,setInitial]=useState('');const [mobileMenu,setMobileMenu]=useState(false);const [notify,setNotify]=useState(false);const [sessionError,setSessionError]=useState('');const t=labels[lang];
- async function loadProfile(){if(!hasToken())return;try{const d=await api('farmers/me');setProfile(d.profile);setDistrict(d.profile.district);setLang(d.profile.language);setLoggedIn(true);setStaff(false);}catch{try{await api('admin/analytics');setStaff(true);setLoggedIn(true)}catch{setToken('');setLoggedIn(false);setProfile(null);setSessionError('सत्र समाप्त हो गया है। कृपया फिर से लॉग इन करें।')}}}
+ async function loadProfile(){if(!hasToken())return;setSessionError('');try{const d=await api('farmers/me');setProfile(d.profile);setDistrict(d.profile.district);setLang(d.profile.language);setLoggedIn(true);setStaff(false);}catch(error){if(error instanceof ApiError && error.status===404){try{await api('admin/analytics');setStaff(true);setLoggedIn(true);setProfile(null);return;}catch(adminError){error=adminError;}}if(error instanceof ApiError && error.status===401){setToken('');setLoggedIn(false);setStaff(false);setProfile(null);setSessionError('सत्र समाप्त हो गया है। कृपया फिर से लॉग इन करें।');return;}setLoggedIn(true);setSessionError(error instanceof ApiError && error.status===403?'इस खाते को यह जानकारी देखने की अनुमति नहीं है।':'सर्वर या इंटरनेट अभी उपलब्ध नहीं है। आपका लॉग इन सुरक्षित है। थोड़ी देर बाद फिर प्रयास करें।');}}
  useEffect(()=>{loadProfile()},[]);useEffect(()=>{document.documentElement.lang=lang;localStorage.setItem('agri-language',lang)},[lang]);
  function go(p:Page){setMobileMenu(false);if(p!=='home'&&!loggedIn){setPage(p);setAuth(true);return}setPage(p);window.scrollTo({top:0,behavior:'smooth'})}
  async function changeLanguage(value:Language){setLang(value);if(loggedIn&&!staff){try{await api('farmers/me',{method:'PATCH',body:JSON.stringify({language:value})});}catch{setSessionError('भाषा की पसंद सहेज नहीं सके। फिर से प्रयास करें।')}}}
